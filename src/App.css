@@ -1,0 +1,20 @@
+.repl {
+	display: flex;
+}
+
+.repl > div {
+	flex: 1;
+}
+
+textarea {
+	width: 90%;
+	height: 100px;
+}
+
+.repl-options {
+
+}
+
+.repl-main {
+
+}
