@@ -7,7 +7,10 @@
     "react-scripts": "0.6.0"
   },
   "dependencies": {
+    "brace": "^0.8.0",
+    "pretty-format": "^4.2.1",
     "react": "^15.3.2",
+    "react-ace": "^3.6.0",
     "react-dom": "^15.3.2"
   },
   "scripts": {

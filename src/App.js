@@ -1,5 +1,9 @@
 import React, { Component } from 'react';
+import ReactAce from 'react-ace';
+import prettyFormat from 'pretty-format'
 import './App.css';
+import 'brace/mode/javascript'
+import 'brace/theme/tomorrow'
 
 const { Babel } = window;
 
@@ -125,100 +129,214 @@ const PRESETS = {
 	// 'es2015-loose',
 }
 
+const PRESET_NAMES = Object.keys(PRESETS)
+
+const INIT = `class X {
+	foo: string = 'bar'
+}`
+
+const Editor = ({ name, value, onChange }) => (
+	<ReactAce
+		onChange={onChange}
+		value={value} name={name}
+		readOnly={!onChange}
+		height="100%"
+		width="100%"
+		mode="javascript"
+		theme="tomorrow"
+		tabSize={2}
+		showPrintMargin={false}
+		setOptions={{
+			useSoftTabs: true,
+			useWorker: false,
+		}}
+	/>
+)
+
+const SelectableList = ({ options, selectedOptions, onToggle }) => (
+	<ul>
+		{options.map(opt => (
+			<li key={opt}>
+				<input
+					type="checkbox"
+					checked={selectedOptions[opt] || false}
+					onChange={() => onToggle(opt)}
+				/>
+				<label onClick={() => onToggle(opt)}>
+					{opt}
+				</label>
+			</li>
+		))}
+	</ul>
+)
+
 class App extends Component {
 	state = {
 		presets: {},
 		plugins: {},
+		code: INIT,
 	}
 
 	togglePreset = preset => {
-		this.setState({
+		this.setState(state => ({
 			presets: {
-				...this.state.presets,
-				[preset]: !this.state.presets[preset],
+				...state.presets,
+				[preset]: !state.presets[preset],
 			},
 			plugins: {
-				...this.state.plugins,
+				...state.plugins,
 				...PRESETS[preset],
 			}
-		})
+		}))
+	}
+
+	togglePlugin = plugin => {
+		this.setState(state => ({
+			plugins: {
+				...state.plugins,
+				[plugin]: !state.plugins[plugin],
+			},
+		}))
+	}
+
+	generateConfig() {
+		const config = {}
+
+		const presets = Object.keys(this.state.presets).filter(k => this.state.presets[k])
+		const plugins = Object.keys(this.state.plugins).filter(k => this.state.plugins[k])
+
+		if (presets.length) {
+			config.presets = presets
+		}
+
+		if (plugins.length) {
+			config.plugins = plugins
+		}
+
+		return config
 	}
 
 	render() {
-		const { code, error } = this.transformed
+		const { code, error, evaluated } = this.transformed
 
 		return (
 			<div className="repl">
+				{this.state.showConfig && (
+					<dialog open={true} className="dialog">
+						<button onClick={() => this.setState({ showConfig: false })}>Close</button>
+						<pre>{JSON.stringify(this.generateConfig(), null, 2)}</pre>
+					</dialog>
+				)}
+
 				<div className="repl-options">
+					<button onClick={() => this.setState({ showConfig: true })}>Gen</button>
 					<h3>Presets</h3>
-					<ul>
-						{Object.keys(PRESETS).map(preset => (
-							<li key={preset}>
-								<input
-									type="checkbox"
-									value={this.state.presets[preset]}
-									onChange={() => this.togglePreset(preset)}
-								/>
-								{preset}
-							</li>
-						))}
-					</ul>
+					<SelectableList
+						options={PRESET_NAMES}
+						selectedOptions={this.state.presets}
+						onToggle={this.togglePreset}
+					/>
 
 					<h3>Plugins</h3>
-					<ul>
-						{PLUGINS.map(plugin => (
-							<li key={plugin}>
-								<input
-									type="checkbox"
-									value={this.state.plugins[plugin]}
-									onChange={() => {
-										this.setState({
-											plugins: {
-												...this.state.plugins,
-												[plugin]: !this.state.plugins[plugin],
-											},
-										})
-									}}
-								/>
-								{plugin}
-							</li>
-						))}
-					</ul>
+					<SelectableList
+						options={PLUGINS}
+						selectedOptions={this.state.plugins}
+						onToggle={this.togglePlugin}
+					/>
 				</div>
 
 				<div className="repl-main">
-					<h3>Input</h3>
-					<textarea value={this.state.code} onChange={e => this.setState({ code: e.target.value })}></textarea>
+					<div className="repl-box repl-input">
+						<Editor
+							onChange={code => this.setState({ code })}
+							value={this.state.code}
+							name="input-editor"
+						/>
+						{error && <pre className="error">{error}</pre>}
+					</div>
 
-					<h3>Output</h3>
-					<textarea disabled value={code}></textarea>
+					<div className="repl-box repl-output">
+						<Editor
+							value={code}
+							name="output-editor"
+						/>
+						{evaluated && <pre className="evaluated">{evaluated}</pre>}
+					</div>
 
-					{error && <pre>{error}</pre>}
 				</div>
 
 			</div>
 		)
 	}
 
-	previousOutput = ''
+	previous = { code: '', evaluated: '' }
 
 	get transformed() {
 		try {
 			const presets = Object.keys(this.state.presets).filter(k => this.state.presets[k])
 			const plugins = Object.keys(this.state.plugins).filter(k => this.state.plugins[k])
 
-			this.previousOutput = Babel.transform(this.state.code, { presets, plugins }).code
+			const code = Babel.transform(this.state.code, { presets, plugins }).code
+			const evaluated = this.evaluate(code)
+
+			this.previous = { code, evaluated }
 
 			return {
-				code: this.previousOutput,
+				code,
+				evaluated,
 				error: null,
 			}
 		} catch (e) {
 			return {
-				code: this.previousOutput,
+				code: this.previous.code,
+				evalOutput: this.previous.evaluated,
 				error: e.message,
 			}
 		}
+	}
+
+	evaluate(code) {
+		const capturingConsole = Object.create(console)
+		let buffer = []
+		let done = false
+
+		const flush = () => {
+			// $dom.text(buffer.join('\n')) // ...
+			// TODO: this just updated the DOM, and it's useful for async logs...
+		}
+		const write = line => {
+			buffer.push(line)
+			if (done) {
+				flush()
+			}
+		}
+
+		const capture = (...args) => {
+			write(args.map(line => prettyFormat(line)).join(' '))
+		}
+
+		capturingConsole.clear = () => {
+			buffer = []
+			flush()
+			console.clear()
+		}
+
+		['error', 'log', 'info', 'debug'].forEach(key => {
+			capturingConsole[key] = (...args) => {
+				console[key](...args)
+				capture(...args)
+			}
+		})
+
+		try {
+			new Function('console', code)(capturingConsole) // eslint-disable-line no-new-func
+		} catch (err) {
+			buffer.push(err.message)
+		}
+
+		done = true
+
+		return buffer.join('\n')
 	}
 }
 
