@@ -3,34 +3,53 @@
 import React from 'react'
 
 type Props = {
-  options: string[],
-  selectedOptions: { [option: string]: boolean },
-  disabledOptions: string[],
-  onToggle: (option: string) => any,
+  items: string[],
+  selected: { [option: string]: boolean },
+  disabled: string[],
+  onItemToggle: (option: string) => any,
 }
 
-const ListItem = ({ disabled, selected, onClick, option }) =>
+const OptionsList = ({ item, options, onOptionToggle, onOptionChange }) => {
+  const enabled = options ? options.enabled : false
+
+  return (
+    <div style={{ display: 'inline' }}>
+    	<input type="checkbox" checked={enabled} onChange={() => onOptionToggle(item)} />
+      {enabled && (
+        <textarea defaultValue={options.value ? JSON.stringify(options.value) : ''} onBlur={e => onOptionChange(item, JSON.parse(e.target.value))}></textarea>
+      )}
+    </div>
+  )
+}
+
+const ListItem = ({ disabled, selected, onClick, item, options, onOptionToggle, onOptionChange }) =>
   disabled ? (
     <li>
 			<input type="checkbox" checked disabled />
-			<label>{option}</label>
+			<label>{item}</label>
     </li>
   ) : (
     <li>
-  		<input type="checkbox" checked={selected} onChange={() => onClick(option)} />
-  		<label onClick={() => onClick(option)}>{option}</label>
+  		<input type="checkbox" checked={selected} onChange={() => onClick(item)} />
+  		<label onClick={() => onClick(item)}>{item}</label>
+      {selected && (
+        <OptionsList item={item} options={options[item]} onOptionToggle={onOptionToggle} onOptionChange={onOptionChange} />
+      )}
     </li>
   )
 
-const SelectableList = ({ options, selectedOptions, disabledOptions = [], onToggle }: Props) => (
+const SelectableList = ({ items, selected, disabled = [], onItemToggle, options, onOptionToggle, onOptionChange }: Props) => (
 	<ul>
-		{options.map(opt => (
+		{items.map(opt => (
       <ListItem
         key={opt}
-        option={opt}
-        disabled={disabledOptions.includes(opt)}
-        selected={selectedOptions[opt] || false}
-        onClick={onToggle}
+        item={opt}
+        disabled={disabled.includes(opt)}
+        selected={selected[opt] || false}
+        onClick={onItemToggle}
+        options={options}
+        onOptionToggle={onOptionToggle}
+        onOptionChange={onOptionChange}
       />
 		))}
 	</ul>

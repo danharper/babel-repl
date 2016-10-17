@@ -25,8 +25,8 @@ const run = input => {
   }
 }
 
-const Repl = ({ code, onChange, presets, plugins }: Props) => {
-  const { output, evaluated, error } = run({ code, presets, plugins })
+const Repl = ({ code, onChange, presets, plugins, options }: Props) => {
+  const { output, evaluated, error } = run({ code, presets, plugins, options })
 
   return (
     <div className="repl-main">

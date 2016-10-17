@@ -61,3 +61,8 @@ body {
   padding: .5em;
   color: #c7254e;
 }
+
+.plugin-options {
+  font-size: .8em;
+  margin-left: .5em;
+}
