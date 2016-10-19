@@ -1,13 +1,13 @@
 // @flow
 
 const mergeOptions = (plugins, options) => {
-  return plugins.map(name => {
+  return plugins.map((name) => {
     if (options[name] && options[name].enabled) {
-      return [name, options[name].value]
+      return [name, options[name].value];
     } else {
-      return name
+      return name;
     }
-  })
-}
+  });
+};
 
-export default mergeOptions
+export default mergeOptions;

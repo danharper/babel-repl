@@ -1,9 +1,9 @@
 // @flow
 
-import React from 'react'
-import ReactAce from 'react-ace'
-import 'brace/mode/javascript'
-import 'brace/theme/tomorrow'
+import React from "react";
+import ReactAce from "react-ace";
+import "brace/mode/javascript";
+import "brace/theme/tomorrow";
 
 type Props = {
   name: string,
@@ -24,10 +24,10 @@ const Editor = ({ name, value, onChange }: Props) => (
 		tabSize={2}
 		showPrintMargin={false}
 		setOptions={{
-			useSoftTabs: true,
-			useWorker: false,
-		}}
+  useSoftTabs: true,
+  useWorker: false,
+}}
 	/>
-)
+);
 
-export default Editor
+export default Editor;

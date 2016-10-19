@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react'
+import React from "react";
 
 type Props = {
   items: string[],
@@ -10,37 +10,54 @@ type Props = {
 }
 
 const OptionsList = ({ item, options, onOptionToggle, onOptionChange }) => {
-  const enabled = options ? options.enabled : false
+  const enabled = options ? options.enabled : false;
 
   return (
-    <div style={{ display: 'inline' }}>
-    	<input type="checkbox" checked={enabled} onChange={() => onOptionToggle(item)} />
+    <div style={{ display: "inline" }}>
+      <input type="checkbox" checked={enabled} onChange={() => onOptionToggle(item)} />
       {enabled && (
-        <textarea defaultValue={options.value ? JSON.stringify(options.value) : ''} onBlur={e => onOptionChange(item, JSON.parse(e.target.value))}></textarea>
+        <textarea
+          defaultValue={options.value ? JSON.stringify(options.value) : ""}
+          onBlur={(e) => onOptionChange(item, JSON.parse(e.target.value))}
+        />
       )}
     </div>
-  )
-}
+  );
+};
 
-const ListItem = ({ disabled, selected, onClick, item, options, onOptionToggle, onOptionChange }) =>
-  disabled ? (
+const ListItem = ({ disabled, selected, onClick, item, options, onOptionToggle, onOptionChange }) => {
+  return disabled ? (
     <li>
 			<input type="checkbox" checked disabled />
 			<label>{item}</label>
     </li>
   ) : (
     <li>
-  		<input type="checkbox" checked={selected} onChange={() => onClick(item)} />
-  		<label onClick={() => onClick(item)}>{item}</label>
+      <input type="checkbox" checked={selected} onChange={() => onClick(item)} />
+      <label onClick={() => onClick(item)}>{item}</label>
       {selected && (
-        <OptionsList item={item} options={options[item]} onOptionToggle={onOptionToggle} onOptionChange={onOptionChange} />
+        <OptionsList
+          item={item}
+          options={options[item]}
+          onOptionToggle={onOptionToggle}
+          onOptionChange={onOptionChange}
+        />
       )}
     </li>
-  )
+  );
+};
 
-const SelectableList = ({ items, selected, disabled = [], onItemToggle, options, onOptionToggle, onOptionChange }: Props) => (
+const SelectableList = ({
+  items,
+  selected,
+  disabled = [],
+  onItemToggle,
+  options,
+  onOptionToggle,
+  onOptionChange
+}: Props) => (
 	<ul>
-		{items.map(opt => (
+		{items.map((opt) => (
       <ListItem
         key={opt}
         item={opt}
@@ -53,6 +70,6 @@ const SelectableList = ({ items, selected, disabled = [], onItemToggle, options,
       />
 		))}
 	</ul>
-)
+);
 
-export default SelectableList
+export default SelectableList;
