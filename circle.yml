@@ -16,6 +16,9 @@ test:
     pre:
         - npm run lint
     post:
+        - >
+          jq '. + {homepage: "https://__something__.circle-artifacts.com/0/home/ubuntu/babel-repl/build/"}' package.json > package.ci.json
+          && mv -f package.ci.json package.json
         - npm run build
 general:
     artifacts:
