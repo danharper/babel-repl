@@ -1,0 +1,25 @@
+machine:
+    node:
+        version: node
+    pre:
+        - mkdir ~/.yarn-cache
+dependencies:
+    pre:
+        - 'curl -o- -L https://yarnpkg.com/install.sh | bash'
+    cache_directories:
+        - ~/.yarn-cache
+    override:
+        - yarn install
+test:
+    override:
+        - yarn test
+    pre:
+        - npm run lint
+    post:
+        - >
+          jq '. + {homepage: "https://__something__.circle-artifacts.com/0/home/ubuntu/babel-repl/build/"}' package.json > package.ci.json
+          && mv -f package.ci.json package.json
+        - npm run build
+general:
+    artifacts:
+        - build
